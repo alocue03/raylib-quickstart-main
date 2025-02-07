@@ -1,19 +1,15 @@
-/*
-Raylib example file.
-This is an example main file for a simple raylib project.
-Use this as a starting point or replace it with your code.
-
-by Jeffery Myers is marked with CC0 1.0. To view a copy of this license, visit https://creativecommons.org/publicdomain/zero/1.0/
-
-*/
-
 #include "raylib.h"
 #include "rlgl.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <iostream>
+#include "GameObject.h"
+#include <vector>
+#include "MemoryManager.h"
 
-#include "resource_dir.h"	// utility header for SearchAndSetResourceDir
+
+#include "resource_dir.h"    // utility header for SearchAndSetResourceDir
 
 // Definición de niveles de verbosidad
 typedef enum {
@@ -89,6 +85,7 @@ void LoadConfig(const char* filename, VideoConfig* config) {
 
     fclose(file);
 }
+
 void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float height, float length, Color color)
 {
     float x = position.x;
@@ -97,14 +94,6 @@ void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float hei
 
     // Set desired texture to be enabled while drawing following vertex data
     rlSetTexture(texture.id);
-
-    // Vertex data transformation can be defined with the commented lines,
-    // but in this example we calculate the transformed vertex data directly when calling rlVertex3f()
-    //rlPushMatrix();
-        // NOTE: Transformation is applied in inverse order (scale -> rotate -> translate)
-        //rlTranslatef(2.0f, 0.0f, 0.0f);
-        //rlRotatef(45, 0, 1, 0);
-        //rlScalef(2.0f, 2.0f, 2.0f);
 
     rlBegin(RL_QUADS);
     rlColor4ub(color.r, color.g, color.b, color.a);
@@ -151,7 +140,7 @@ void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float hei
 }
 
 
-int main (int argc, char** argv)
+int main(int argc, char** argv)
 {
 
     // Leer configuración desde el archivo INI
@@ -171,35 +160,21 @@ int main (int argc, char** argv)
     if (config.fullscreen) {
         ToggleFullscreen();
     }
-	//SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
-    //leer argumentos de CLI
- //   int resX = 640;
- //   int resY = 480;
- //   bool wantsFullScreen = false;
- //   if (argc > 2)
- //   {
- //       for (int i = 0; i < argc; i++)
- //       {
- //           //std::cout << "arg" << i << argv[i] << std::endl;
- //           //fprintf(stderr, "arg %1 : %s \n", i, argv[i]);
- //           printf(stderr, "arg %1 : %s \n", i, argv[i]);
- //           if (strcmp(argv[i], "-resx") == 0)
- //           {
- //               resX = atoi(argv[i + 1]);
- //           }
- //           if (strcmp(argv[i], "-resy") == 0)
- //           {
- //               resY = atoi(argv[i + 1]);
- //           }
- //           if (strcmp(argv[i], "-fullscreen") == 0)
- //           {
- //               wantsFullScreen = true;
- //           }
- //       }
- //   }
 
-	//// Create the window and OpenGL context
- //   InitWindow(resX, resY, "Hello Raylib");
+	std::vector<GameObject*> gameObjects;
+
+    for (int i = 0; i < 1000; i++)
+    {
+        GameObject *k = GameObject::Spawn({ 5.0f*i,5.0f*i }, { 100,5.0f*i }, "Ottis");
+		gameObjects.push_back(k);
+
+    }
+
+	MemoryManager::getInstance()->alloc(800*1024*1024);
+
+	//GameObject *k = GameObject::Spawn({ 100,100 }, { 250,100 }, "Ottis");
+
+
 
     // Establecer filtros
     SetLogLevel(LOG_LEVEL_DEBUG);
@@ -212,57 +187,65 @@ int main (int argc, char** argv)
 
     printf("Initializing game subsystem \n");
 
-	// Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
-	SearchAndSetResourceDir("resources");
+    // Utility function from resource_dir.h to find the resources folder and set it as the current working directory so we can load from it
+    SearchAndSetResourceDir("resources");
 
-	// Load a texture from the resources directory
-	Texture wabbit = LoadTexture("wabbit_alpha.png");
+    // Load a texture from the resources directory
+    Texture wabbit = LoadTexture("wabbit_alpha.png");
 
-	Texture cubeTex = LoadTexture("Minecraftpng.png");
-
-	Camera3D camera = { 0 };
-	camera.position = (Vector3){ 4,0,2 };
-	camera.target = (Vector3){ 0,0,0 };
-	camera.up = (Vector3){ 0,1,0 };
-	camera.fovy = 45;
-	camera.projection = CAMERA_PERSPECTIVE;
-	// game loop
-	while (!WindowShouldClose())		// run the loop untill the user presses ESCAPE or presses the Close button on the window
-	{
-		UpdateCamera(&camera, CAMERA_FREE);
-
-		// drawing
-		BeginDrawing();
-
-		// Setup the back buffer for drawing (clear color and depth buffers)
-		ClearBackground(LIGHTGRAY);
-
-		// draw some text using the default font
-		//DrawText("Hello Raylib", 200,200,20,WHITE);
-
-		// draw our texture to the screen
-		//DrawTexture(wabbit, 400, 200, WHITE);
-		BeginMode3D(camera);
-		//DrawCube((Vector3) { 0, 0, 0 }, 1, 1, 1, RED);
-        DrawCubeTexture(cubeTex, (Vector3) { 0, 0, 0 }, 2, 2, 2, WHITE);
-
-		DrawGrid(100, 1);
+    Texture cubeTex = LoadTexture("Minecraftpng.png");
 
 
+    Camera3D camera = { 0 };
+    camera.position = { 4,0,2 };
+    camera.target = { 0,0,0 };
+    camera.up = { 0,1,0 };
+    camera.fovy = 45;
+    camera.projection = CAMERA_PERSPECTIVE;
+    // game loop
+    while (!WindowShouldClose())        // run the loop untill the user presses ESCAPE or presses the Close button on the window
+    {
+        UpdateCamera(&camera, CAMERA_FREE);
+        for (int i = 0; i < gameObjects.size(); i++)
+        {
+			gameObjects[i]->Update();
+        }
 
-		EndMode3D();
+		//k->Update();
 
+        // drawing
+        BeginDrawing();
 
-		// end the frame and get ready for the next one  (display frame, poll input, etc...)
-		EndDrawing();
-	}
+        // Setup the back buffer for drawing (clear color and depth buffers)
+        ClearBackground(LIGHTGRAY);
 
-	// cleanup
-	// unload our texture so it can be cleaned up
-	UnloadTexture(wabbit);
+        BeginMode3D(camera);
+
+        DrawCubeTexture(cubeTex,{ 0, 0, 0 }, 2, 2, 2, WHITE);
+
+        DrawGrid(100, 1);
+
+        EndMode3D();
+
+        // Dibujar la imagen descargada
+        DrawTexture(wabbit, 10, 10, WHITE);
+
+        for (int i = 0; i < gameObjects.size(); i++)
+        {
+            gameObjects[i]->Draw();
+        }
+		//k->Draw();
+
+        // end the frame and get ready for the next one  (display frame, poll input, etc...)
+        EndDrawing();
+    }
+
+    // cleanup
+    // unload our texture so it can be cleaned up
+    UnloadTexture(wabbit);
     UnloadTexture(cubeTex);
 
-	// destroy the window and cleanup the OpenGL context
-	CloseWindow();
-	return 0;
+    // destroy the window and cleanup the OpenGL context
+    CloseWindow();
+    return 0;
 }
