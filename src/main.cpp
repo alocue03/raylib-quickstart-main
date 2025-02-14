@@ -7,7 +7,7 @@
 #include "GameObject.h"
 #include <vector>
 #include "MemoryManager.h"
-
+#include "AudioManager.h"
 
 #include "resource_dir.h"    // utility header for SearchAndSetResourceDir
 
@@ -163,10 +163,11 @@ int main(int argc, char** argv)
 
 	std::vector<GameObject*> gameObjects;
 
-    for (int i = 0; i < 1000; i++)
+    for (int i = 0; i < 1000000; i++)
     {
         GameObject *k = GameObject::Spawn({ 5.0f*i,5.0f*i }, { 100,5.0f*i }, "Ottis");
-		gameObjects.push_back(k);
+        k->enabled = i % 2 == 0;
+        gameObjects.push_back(k);
 
     }
 
@@ -202,13 +203,21 @@ int main(int argc, char** argv)
     camera.up = { 0,1,0 };
     camera.fovy = 45;
     camera.projection = CAMERA_PERSPECTIVE;
+
+    AudioManager::GetInstance()->LoadBackgroundMusic("TECNO1.XM");
+    AudioManager::GetInstance()->PlayBGM();
+
+
     // game loop
     while (!WindowShouldClose())        // run the loop untill the user presses ESCAPE or presses the Close button on the window
     {
+        AudioManager::GetInstance()->Update();
+
         UpdateCamera(&camera, CAMERA_FREE);
         for (int i = 0; i < gameObjects.size(); i++)
         {
-			gameObjects[i]->Update();
+            if(gameObjects[i]->enabled)
+			    gameObjects[i]->Update();
         }
 
 		//k->Update();

@@ -15,6 +15,7 @@ public:
 	void Update();
 	void Draw();
 
+	bool enabled;
 	Vector2 position;
 	Vector2 velocity;
 
