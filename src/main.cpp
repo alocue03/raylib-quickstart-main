@@ -11,6 +11,9 @@
 
 #include "resource_dir.h"    // utility header for SearchAndSetResourceDir
 
+extern "C" {
+#include "md5.h"
+}
 // Definición de niveles de verbosidad
 typedef enum {
     LOG_LEVEL_ERROR,
@@ -143,6 +146,23 @@ void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float hei
 int main(int argc, char** argv)
 {
 
+    //prueba de md5
+    char* input = "hola mundo";
+    uint8_t result[16];
+    md5String(input, result);
+    for (int i = 0; i < 16; i++)
+    {
+        printf("%02x", result[i]);
+    }
+    char hash[33];
+    for (int i = 0; i < 32; i++)
+    {
+        sprintf(&hash[i*2],"%02x", (unsigned int)result[i]);
+    }
+
+    puts("");
+    std::cout << hash << std::endl;
+
     // Leer configuración desde el archivo INI
     VideoConfig config = { 640, 480, false, false };  // Valores predeterminados
     LoadConfig("config.ini", &config);
@@ -163,7 +183,7 @@ int main(int argc, char** argv)
 
 	std::vector<GameObject*> gameObjects;
 
-    for (int i = 0; i < 1000000; i++)
+    for (int i = 0; i < 10; i++)
     {
         GameObject *k = GameObject::Spawn({ 5.0f*i,5.0f*i }, { 100,5.0f*i }, "Ottis");
         k->enabled = i % 2 == 0;
