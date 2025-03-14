@@ -8,6 +8,8 @@
 #include <vector>
 #include "MemoryManager.h"
 #include "AudioManager.h"
+#include "CirCleComponent.h"
+#include "Gato.h"
 
 #include "resource_dir.h"    // utility header for SearchAndSetResourceDir
 
@@ -145,23 +147,30 @@ void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float hei
 
 int main(int argc, char** argv)
 {
-
+    //Gato cat;
+    //cat.GatoMain();
+    
     //prueba de md5
-    char* input = "hola mundo";
-    uint8_t result[16];
-    md5String(input, result);
-    for (int i = 0; i < 16; i++)
-    {
-        printf("%02x", result[i]);
-    }
-    char hash[33];
-    for (int i = 0; i < 32; i++)
-    {
-        sprintf(&hash[i*2],"%02x", (unsigned int)result[i]);
-    }
+    //char* input = "hola mundo";
+    //uint8_t result[16];
+    //md5String(input, result);
+    //for (int i = 0; i < 16; i++)
+    //{
+    //    printf("%02x", result[i]);
+    //}
+    //char hash[33];
+    //for (int i = 0; i < 32; i++)
+    //{
+    //    sprintf(&hash[i*2],"%02x", (unsigned int)result[i]);
+    //}
 
-    puts("");
-    std::cout << hash << std::endl;
+    //puts("");
+    //std::cout << hash << std::endl;
+
+    ////////////////////////////////////
+    //LUA
+    ////////////////////////////////////
+
 
     // Leer configuración desde el archivo INI
     VideoConfig config = { 640, 480, false, false };  // Valores predeterminados
@@ -181,14 +190,27 @@ int main(int argc, char** argv)
         ToggleFullscreen();
     }
 
-	std::vector<GameObject*> gameObjects;
+	//std::vector<GameObject*> gameObjects;
 
-    for (int i = 0; i < 10; i++)
+ //   for (int i = 0; i < 10; i++)
+ //   {
+ //       GameObject *k = GameObject::Spawn({ 5.0f*i,5.0f*i }, { 100,5.0f*i }, "Ottis");
+ //       k->enabled = i % 2 == 0;
+ //       gameObjects.push_back(k);
+
+ //   }
+
+    GameObject* go = new GameObject();
+    ptrComponents newComp = std::make_shared<CirCleComponent>();
+    go->AddComponent(newComp);
+
+    std::vector<GameObject*> gameobjects;
+    for (int i = 0; i < 100; i++)
     {
-        GameObject *k = GameObject::Spawn({ 5.0f*i,5.0f*i }, { 100,5.0f*i }, "Ottis");
-        k->enabled = i % 2 == 0;
-        gameObjects.push_back(k);
-
+        GameObject* go = new GameObject();
+        ptrComponents newComp = std::make_shared<CirCleComponent>();
+        go->AddComponent(newComp);
+        gameobjects.push_back(go);
     }
 
 	MemoryManager::getInstance()->alloc(800*1024*1024);
@@ -234,12 +256,15 @@ int main(int argc, char** argv)
         AudioManager::GetInstance()->Update();
 
         UpdateCamera(&camera, CAMERA_FREE);
-        for (int i = 0; i < gameObjects.size(); i++)
+       // for (int i = 0; i < gameObjects.size(); i++)
+       // {
+       //     if(gameObjects[i]->enabled)
+			    //gameObjects[i]->Update();
+       // }
+        for (auto& go : gameobjects)
         {
-            if(gameObjects[i]->enabled)
-			    gameObjects[i]->Update();
+            go->Update(GetFrameTime());
         }
-
 		//k->Update();
 
         // drawing
@@ -250,6 +275,11 @@ int main(int argc, char** argv)
 
         BeginMode3D(camera);
 
+        for (auto& go : gameobjects)
+        {
+            go->Draw(GetFrameTime());
+        }
+
         DrawCubeTexture(cubeTex,{ 0, 0, 0 }, 2, 2, 2, WHITE);
 
         DrawGrid(100, 1);
@@ -259,10 +289,10 @@ int main(int argc, char** argv)
         // Dibujar la imagen descargada
         DrawTexture(wabbit, 10, 10, WHITE);
 
-        for (int i = 0; i < gameObjects.size(); i++)
-        {
-            gameObjects[i]->Draw();
-        }
+        //for (int i = 0; i < gameObjects.size(); i++)
+        //{
+        //    gameObjects[i]->Draw();
+        //}
 		//k->Draw();
 
         // end the frame and get ready for the next one  (display frame, poll input, etc...)

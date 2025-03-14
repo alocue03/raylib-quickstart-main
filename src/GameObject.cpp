@@ -1,69 +1,78 @@
 #include "GameObject.h"
 
-unsigned int GameObject::nextId = 1;
 
 GameObject::GameObject()
 {
-	name = "defaultObject";
 	id = 0;
+	enabled = true;
 }
 
 GameObject::~GameObject()
 {
 }
 
-void GameObject::Init()
-{
-	std::cout << "Hola soy un objeto" << std::endl;
-	position = { (float)GetScreenWidth()/2, (float)GetScreenHeight()/2};
-	velocity = { 0,0 };
-	color = RED;
-	//Init(position, velocity);
-}
+//void GameObject::Init()
+//{
+//	std::cout << "Hola soy un objeto" << std::endl;
+//	position = { (float)GetScreenWidth()/2, (float)GetScreenHeight()/2};
+//	velocity = { 0,0 };
+//	color = RED;
+//	//Init(position, velocity);
+//}
+//
+//void GameObject::Init(Vector2 pos, Vector2 vel)
+//{
+//	position = pos;
+//	velocity = vel;
+//	color = RED;
+//
+//}
+//
+//void GameObject::Init(Vector2 pos, Vector2 vel, Color c)
+//{
+//	
+//	position = pos;
+//	velocity = vel;
+//	color = c;
+//}
 
-void GameObject::Init(Vector2 pos, Vector2 vel)
+void GameObject::Update(float deltaTime)
 {
-	position = pos;
-	velocity = vel;
-	color = RED;
-
-}
-
-void GameObject::Init(Vector2 pos, Vector2 vel, Color c)
-{
-	
-	position = pos;
-	velocity = vel;
-	color = c;
-}
-
-void GameObject::Update()
-{
-	position.x += velocity.x * GetFrameTime();
-	position.y += velocity.y * GetFrameTime();
-	if (position.x > GetScreenWidth() || position.x < 0) {
-		velocity.x *= -1;
+	for (auto& comp : components)
+	{
+		comp->Update(deltaTime);
 	}
-	if (position.y > GetScreenHeight() || position.y < 0) {
-		velocity.y *= -1;
+}
+
+void GameObject::Draw(float deltaTime)
+{
+	for (auto& comp : components)
+	{
+		if (comp->ShouldDraw())
+		{
+			comp->Draw(deltaTime);
+		}
 	}
-
 }
 
-void GameObject::Draw()
+void GameObject::AddComponent(ptrComponents newComp)
 {
-	DrawCircle(position.x, position.y, 10, color);
+	components.push_back(newComp);
 }
 
-GameObject* GameObject::Spawn(Vector2 pos, Vector2 vel, std::string _name)
+void GameObject::RemoveComponent()
 {
-
-	GameObject* obj = new GameObject();
-	obj->Init(pos, vel);
-	obj->name = _name;
-	obj->color = DARKPURPLE;
-	obj->id = nextId;
-	nextId++;
-	return obj;
-	std::cout << "objeto" << obj->id << ":" << obj->name << std::endl;
 }
+
+//GameObject* GameObject::Spawn(Vector2 pos, Vector2 vel, std::string _name)
+//{
+//
+//	GameObject* obj = new GameObject();
+//	obj->Init(pos, vel);
+//	obj->name = _name;
+//	obj->color = DARKPURPLE;
+//	obj->id = nextId;
+//	nextId++;
+//	return obj;
+//	std::cout << "objeto" << obj->id << ":" << obj->name << std::endl;
+//}
