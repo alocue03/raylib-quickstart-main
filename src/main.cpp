@@ -10,6 +10,7 @@
 #include "AudioManager.h"
 #include "CirCleComponent.h"
 #include "Gato.h"
+#include "lua.hpp"
 
 #include "resource_dir.h"    // utility header for SearchAndSetResourceDir
 
@@ -144,6 +145,78 @@ void DrawCubeTexture(Texture2D texture, Vector3 position, float width, float hei
     rlSetTexture(0);
 }
 
+////////////////////////////////////
+//LUA
+////////////////////////////////////
+
+int DrawCircle(lua_state* L)
+{
+    float x = (float)lua_tonumber(L, 1);
+	float y = (float)lua_tonumber(L, 2);
+    float radius = (float)lua_tonumber(L, 3);
+    float r = (float)lua_tonumber(L, 4);
+    float g  = (float)lua_tonumber(L, 5);
+    float b = (float)lua_tonumber(L, 6);
+    Color color = { r,g,b,255 };
+    DrawCircle(x, y, radius, color);
+    return 0;
+}
+
+int DrawRectangle(lua_state* L)
+{
+    float x = (float)lua_tonumber(L, 1);
+    float y = (float)lua_tonumber(L, 2);
+    float w = (float)lua_tonumber(L, 3);
+    float h = (float)lua_tonumber(L, 4);
+    float r = (float)lua_tonumber(L, 5);
+    float g = (float)lua_tonumber(L, 6);
+    float b = (float)lua_tonumber(L, 7);
+	Color Color = { r,g,b,255 };
+    DrawRectangle(x, y, w, h, color);
+    return 0;
+}
+
+int Clear(lua_state* L)
+{
+    float r = (float)lua_tonumber(L, 1);
+    float g = (float)lua_tonumber(L, 2);
+    float b = (float)lua_tonumber(L, 3);
+    float a = (float)lua_tonumber(L, 4);
+    Color c = { r,g,b,a };
+	ClearBackground(c);
+    return 0;
+}
+
+void LuaDraw(lua_State* L, float dt)
+{
+	lua_getglobal(L, "Draw");
+    if (lua_isfunction(L, -1))
+    {
+        lua_pushnumber(L, dt);
+        if (lua_pcall(L, 1, 0, 0) != 0)
+        {
+            printf("Error calling draw from lua");
+            printf(lua_tostring(L, -1));
+        }
+    }
+    else
+    {
+        printf("Draw function not found Lua")
+    }
+}
+
+int lua_mymodule(lua_state* L)
+{
+    static const luaL_Reg myModule[] =
+    {
+        {"Clear", Clear},
+        {"DrawCircle", DrawCircle},
+        {"DrawRect", DrawRectangle},
+        {NULL, NULL}
+    };
+	luaL_newlib(L, myModule);
+    return 1;
+}
 
 int main(int argc, char** argv)
 {
@@ -166,11 +239,23 @@ int main(int argc, char** argv)
 
     //puts("");
     //std::cout << hash << std::endl;
+    // 
+    // Tell the window to use vsync and work on high DPI displays
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
-    ////////////////////////////////////
-    //LUA
-    ////////////////////////////////////
+    //// Initialize Lua
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+    luaL_requiref(L, "SimpleDraw", lua_mymodule, 1);
+    lua_pop(L, 1);
 
+    if (luaL_dofile(L, "main.lua"))
+    {
+        printf("Error cargando el script main.lua");
+        printf(lua_tostring(L, -1));
+    }
+    else
+        printf("main.lua file loaded\n");
 
     // Leer configuración desde el archivo INI
     VideoConfig config = { 640, 480, false, false };  // Valores predeterminados
@@ -288,6 +373,8 @@ int main(int argc, char** argv)
 
         // Dibujar la imagen descargada
         DrawTexture(wabbit, 10, 10, WHITE);
+
+        luaDraw(L,GetFrameTime())
 
         //for (int i = 0; i < gameObjects.size(); i++)
         //{
